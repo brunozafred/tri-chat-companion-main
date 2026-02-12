@@ -30,7 +30,7 @@ Projeto desenvolvido como **Desafio Técnico de Backend/Automação**.
 
 ## 🤖 Acesso ao Bot
 
-[![Chat Trilingo](public/tela-trilingo.png)](https://apptrilingo.netlify.app/)
+![Chat Trilingo](public/tela-trilingo.png)]
 
 URL -> https://apptrilingo.netlify.app/
 
@@ -75,7 +75,7 @@ No fluxo é possível:
 - Cancelar Agendamento
 
 
-[![Agendar Conversa](public/agendar_conversa.png)]
+![Agendar Conversa](public/agendar_conversa.png)
 
 O webhook recebe os dados do usuário logado no frontend e também a data escolhida para agendamento.
 Em seguida converte a data para ISO 8601 que é o padrão aceito pelo Supabase.
@@ -83,7 +83,7 @@ No próximo node ele recupera os dados do usuário e filtra a ação que o usuá
 
 ### 3️⃣ Sistema de Lembretes
 
-[![Lembretes](public/lembretes.png)]
+![Lembretes](public/lembretes.png)
 
 O sistema também possui um sistema de lembretes.
 Se o usuário ficar inativo por 15 minutos o sistema envia uma mensagem de inatividade.
