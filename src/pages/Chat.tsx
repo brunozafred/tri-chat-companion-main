@@ -52,6 +52,7 @@ const Chat = () => {
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const [sending, setSending] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [lastReminderLevel, setLastReminderLevel] = useState(0); // 0: nenhum, 1: 15min, 2: 30min
 
 
   useEffect(() => {
@@ -120,7 +121,8 @@ const Chat = () => {
         const lembretes = data.lembretes_enviados || 0;
 
         // Lógica de 15 minutos (900.000 ms)
-        if (diffMs >= 900000 && diffMs < 1800000 && lembretes === 0) {
+        if (diffMs >= 900000 && diffMs < 1800000 && lembretes === 0 && lastReminderLevel < 1) {
+          setLastReminderLevel(1);
           const msg = "Oi! Vi que você ficou um tempinho sem responder 😊 Estou aqui quando quiser continuar!";
           setMessages(prev => [...prev, {
             id: Date.now(),
@@ -136,7 +138,8 @@ const Chat = () => {
         }
 
         // Lógica de 30 minutos (1.800.000 ms)
-        if (diffMs >= 1800000 && lembretes === 1) {
+        if (diffMs >= 1800000 && (lembretes === 1 || (lembretes === 0 && lastReminderLevel === 1)) && lastReminderLevel < 2) {
+          setLastReminderLevel(2);
           const msg = "Só passando pra lembrar que continuo por aqui 💬 Quando quiser é só chamar!";
           setMessages(prev => [...prev, {
             id: Date.now(),
@@ -158,7 +161,7 @@ const Chat = () => {
 
     const interval = setInterval(checkInactivity, 60000); // Roda a cada 1 minuto
     return () => clearInterval(interval);
-  }, [user?.id]);
+  }, [user?.id, lastReminderLevel]);
 
   const sendChatToWebhook = async (message: string) => {
     try {
@@ -224,6 +227,7 @@ const Chat = () => {
 
   const resetReminders = async () => {
     if (!user?.id) return;
+    setLastReminderLevel(0); // Reset local state too
     try {
       await (supabase
         .from("usuarios")
@@ -588,7 +592,7 @@ const Chat = () => {
               <AvatarImage src={triAvatar} alt="Tri" />
             </Avatar>
             <div className="bg-secondary text-secondary-foreground rounded-2xl rounded-bl-md px-4 py-2.5 text-sm animate-pulse">
-              Enviando agendamento...
+              digitando...
             </div>
           </div>
         )}

@@ -1,0 +1,366 @@
+{
+  "name": "F1 - Trilingo",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat-trilingo",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "4f85ce2d-5c07-4e1c-bf96-0f9ea4139269",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1616,
+        80
+      ],
+      "webhookId": "chat-trilingo"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Webhook').item.json.body.message }}",
+        "options": {
+          "systemMessage": "=Você é o Tri, o mascote do Trilingo. Você ajuda alunos a aprenderem até três lingas novas (Espanhol, Ingles e Francês). Seja motivador e use emojis.\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -656,
+        192
+      ],
+      "id": "32b003a2-247f-43ad-8830-502dee78e9fa",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.body.email }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -560,
+        400
+      ],
+      "id": "28216916-b8ff-47b9-a2f3-a22fd4d879d6",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -320,
+        192
+      ],
+      "id": "c29bc27a-1953-414c-9de1-0214065c2b3a",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $('Webhook').item.json.body.bloqueado }}",
+              "value2": "true"
+            }
+          ]
+        }
+      },
+      "id": "f7442cce-d9a6-4be5-a4f8-17bfcbb3a0c0",
+      "name": "Está Bloqueado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        80
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $('Webhook').item.json.body.status }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -576,
+        -16
+      ],
+      "id": "64326bed-2501-42cd-97e8-31176d4c9ee3",
+      "name": "Usuário Bloqueado"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo",
+          "mode": "list",
+          "cachedResultName": "gpt-3.5-turbo"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -720,
+        400
+      ],
+      "id": "c99a4ce7-7ad3-4bc4-9c10-138b2265b6b3",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "eRGR4agnYN1hH5cZ",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "usuarios",
+        "filterType": "string",
+        "filterString": "=email=eq.{{ $json.body.email }}"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1424,
+        80
+      ],
+      "id": "4e8bab49-8663-488a-9a85-2d8dd6b61553",
+      "name": "Busca usuário",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "a9GuXzTIV0AbjpX7",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const historico = $json.interacoes || [];\n\nhistorico.push({\n  role: $input.first().json.nome,\n  message: $('Webhook').first().json.body.message,\n  timestampz: new Date().toISOString()\n});\n\nreturn [{\n  json: {\n    interacoes: historico,\n    ultima_interacao: new Date().toISOString(),\n    lembretes_enviados: 0\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1248,
+        80
+      ],
+      "id": "62636993-6c35-48f8-b0fa-16996244ce62",
+      "name": "Salva Histórico"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "usuarios",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{$('Busca usuário').item.json.id}}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "interacoes",
+              "fieldValue": "={{$json.interacoes}}"
+            },
+            {
+              "fieldId": "ultima_interacao",
+              "fieldValue": "={{$json.ultima_interacao}}"
+            },
+            {
+              "fieldId": "lembretes_enviados",
+              "fieldValue": "={{ $json.lembretes_enviados }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1072,
+        80
+      ],
+      "id": "67a63f44-419e-435a-95db-392fea0d3408",
+      "name": "Atualiza Histórico",
+      "credentials": {
+        "supabaseApi": {
+          "id": "a9GuXzTIV0AbjpX7",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n-production-dabf.up.railway.app",
+            "user-agent": "PostmanRuntime/7.51.1",
+            "content-length": "218",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br",
+            "content-type": "application/json",
+            "postman-token": "9380b0de-38db-43d8-abdf-5608263b8a37",
+            "x-forwarded-for": "138.0.247.155",
+            "x-forwarded-host": "n8n-production-dabf.up.railway.app",
+            "x-forwarded-proto": "https",
+            "x-railway-edge": "railway/us-east4-eqdc4a",
+            "x-railway-request-id": "B9YdNCQmS-ildYqdPvyhXg",
+            "x-real-ip": "138.0.247.155",
+            "x-request-start": "1770912617126"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "nome": "Bruno Henrique Teixeira Zafred",
+            "email": "teste2s@email.com",
+            "message": "ola sr.",
+            "data_agendada": "12/02/2026 às 12:00",
+            "id": "b2364f18-a787-47d3-b58d-2306c9e720c0",
+            "status": ""
+          },
+          "webhookUrl": "https://n8n-production-dabf.up.railway.app/webhook-test/chat-trilingo",
+          "executionMode": "test"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Busca usuário",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Está Bloqueado?": {
+      "main": [
+        [
+          {
+            "node": "Usuário Bloqueado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook2": {
+      "main": [
+        []
+      ]
+    },
+    "Busca usuário": {
+      "main": [
+        [
+          {
+            "node": "Salva Histórico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salva Histórico": {
+      "main": [
+        [
+          {
+            "node": "Atualiza Histórico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiza Histórico": {
+      "main": [
+        [
+          {
+            "node": "Está Bloqueado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "d2476f44-a374-4208-b54b-080d4a25e86c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "52b05b755d6159096716768cc21879fdbfe5b14c59d336f52caea02a3ebb0323"
+  },
+  "id": "HcZKmODCQRhvZACjyahoG",
+  "tags": []
+}

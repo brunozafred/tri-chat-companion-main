@@ -1,0 +1,770 @@
+{
+  "name": "F3 - Agendamento",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "usuarios",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "keyValue": "={{ $('Criar agendamento').item.json.body.email }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        256,
+        0
+      ],
+      "id": "1c19f507-be52-49e7-ae08-d07019742d1b",
+      "name": "Procura Usuário",
+      "credentials": {
+        "supabaseApi": {
+          "id": "a9GuXzTIV0AbjpX7",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "agendamentos",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "usuario_id",
+              "fieldValue": "={{ $('Criar agendamento').item.json.body.id }}"
+            },
+            {
+              "fieldId": "data_agendada",
+              "fieldValue": "={{ $('Criar agendamento').item.json.body.data_agendada }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "pendente"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        688,
+        -352
+      ],
+      "id": "1fd1f282-fdc6-42f8-a8aa-fb8a6cc346c9",
+      "name": "Agendamento",
+      "credentials": {
+        "supabaseApi": {
+          "id": "a9GuXzTIV0AbjpX7",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "api/v1/agendamento",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -144,
+        0
+      ],
+      "id": "f37813e1-6c1b-4d05-afd9-4a3e99fff8ef",
+      "name": "Criar agendamento",
+      "webhookId": "2ded2544-9a8d-4f62-8b55-e082bf93a8ee"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Criar agendamento').item.json.body.button }}",
+                    "rightValue": "agendar_conversa",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "0af6acbd-3a35-4f49-8083-3da734855db5"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Criar agendamento"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "4aef2e55-b9a3-4c23-9a8c-47e243f917e0",
+                    "leftValue": "={{ $('Criar agendamento').item.json.body.button }}",
+                    "rightValue": "consultar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Consultar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "6405643c-6a89-4f34-a211-5f6513a66497",
+                    "leftValue": "={{ $('Criar agendamento').item.json.body.button }}",
+                    "rightValue": "atualizar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Atualizar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "badd1bde-e427-427e-93ae-e5aca59d5d63",
+                    "leftValue": "={{ $('Criar agendamento').item.json.body.button }}",
+                    "rightValue": "cancelar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "cancelar"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        -32
+      ],
+      "id": "08520ae3-1575-44b3-856e-55772a509c94",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.body.data_agendada; // \"12/02/2026 às 12:00\"\n\nconst [date, time] = raw.split(' às ');\nconst [day, month, year] = date.split('/');\n\nconst iso = `${year}-${month}-${day}T${time}:00`;\n\nreturn [{\n  json: {\n    dataHoraISO: iso\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        0
+      ],
+      "id": "1a0332a7-87c5-46a5-abb3-67ebec929b8d",
+      "name": "Converte Data"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "agendamentos",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "condition": "eq",
+              "keyValue": "pendente"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "realizado"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        928,
+        -352
+      ],
+      "id": "e68b6bad-f6b2-43f7-9fa8-33960d985750",
+      "name": "Update a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "a9GuXzTIV0AbjpX7",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"message\": \"Seu agendamento para {{ DateTime.fromISO($json.data_agendada).setZone('America/Sao_Paulo').toFormat('dd/MM/yyyy') }} às {{ DateTime.fromISO($json.data_agendada).setZone('America/Sao_Paulo').toFormat('HH:mm') }} foi confirmado com sucesso.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1344,
+        -352
+      ],
+      "id": "ba487a94-055c-49ca-84b1-5319f81ecbb4",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"message\": \"Seu agendamento está confirmado para {{ $json.data_agendada.toDate().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }) }}.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1184,
+        -176
+      ],
+      "id": "89ac2eb3-333e-4d9c-bfa0-53d6f67e1499",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Criar agendamento').item.json.body.status }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "empty",
+                      "singleValue": true
+                    },
+                    "id": "dfd472db-f945-4044-85af-6315cd93c81d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Vazio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "929ee9da-ce6b-4adb-b967-3a46dcd6bb96",
+                    "leftValue": "={{ $('Criar agendamento').item.json.body.status }}",
+                    "rightValue": "realizado",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "realizado"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "adf38dfb-0075-42c8-9ed9-304c187707be",
+                    "leftValue": "={{ $('Criar agendamento').item.json.body.status }}",
+                    "rightValue": "cancelado",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "cancelado"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        752,
+        128
+      ],
+      "id": "71df00f8-eeee-427f-99ed-ef5cb1b1fdee",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"message\": \"Você ainda não realizou nenhum agendamento. Clique no botão Agendar Conversa para iniciar seu agendamento.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1184,
+        0
+      ],
+      "id": "5674085c-5743-4d75-9dcc-c5e7fead2991",
+      "name": "Vazio"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"message\": \"Você já tem um agendamento confirmado para {{ $json.data_agendada.toDate().toLocaleString('pt-BR', { day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' }) }}h. Se quiser reagendá-lo, clique no botão Cancelar Agendamento e depois no botão Agendar Conversa.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1184,
+        160
+      ],
+      "id": "76fa3e97-d218-4e08-a29b-bb1ac5e5baa7",
+      "name": "Realizado"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"message\": \"Você não tem uma gendamento confirmado. Se quiser agendar um clique no botão Agendar Conversa.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1184,
+        336
+      ],
+      "id": "2f928620-5ee8-410b-aa77-25cd07049d32",
+      "name": "Cancelado"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "agendamentos",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "condition": "eq",
+              "keyValue": "realizado"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "cancelado"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        656,
+        448
+      ],
+      "id": "784da58e-7206-4415-89b1-619c586e325d",
+      "name": "Cancelamento",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "a9GuXzTIV0AbjpX7",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "agendamentos",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "usuario_id",
+              "keyValue": "={{ $('Criar agendamento').item.json.body.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        992,
+        144
+      ],
+      "id": "5d204a2f-32a7-495f-be9c-aff01177c2c8",
+      "name": "Get a row1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "a9GuXzTIV0AbjpX7",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"message\": \"Seu agendamento para {{ DateTime.fromISO($json.data_agendada).setZone('America/Sao_Paulo').toFormat('dd/MM/yyyy') }} às {{ DateTime.fromISO($json.data_agendada).setZone('America/Sao_Paulo').toFormat('HH:mm') }} foi cancelado com sucesso.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1184,
+        544
+      ],
+      "id": "1dbc4087-a198-4b35-866c-ddc4d1b61214",
+      "name": "Cancelado1"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "agendamentos",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "usuario_id",
+              "keyValue": "={{ $('Criar agendamento').item.json.body.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        928,
+        528
+      ],
+      "id": "4e16b695-ac34-4c5f-aee9-0837b5ff81ed",
+      "name": "Get a row3",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "a9GuXzTIV0AbjpX7",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "agendamentos",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "usuario_id",
+              "keyValue": "={{ $('Criar agendamento').item.json.body.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        -352
+      ],
+      "id": "5c02bbe0-f77f-4656-8e75-f9196e38e8b1",
+      "name": "Get a row2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "a9GuXzTIV0AbjpX7",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "agendamentos",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "usuario_id",
+              "keyValue": "={{ $('Criar agendamento').item.json.body.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        864,
+        -128
+      ],
+      "id": "5c1bd0f1-13d6-4674-be00-fbefc3c82681",
+      "name": "Get a row",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "a9GuXzTIV0AbjpX7",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Procura Usuário": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar agendamento": {
+      "main": [
+        [
+          {
+            "node": "Converte Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Agendamento",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cancelamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Converte Data": {
+      "main": [
+        [
+          {
+            "node": "Procura Usuário",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agendamento": {
+      "main": [
+        [
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row": {
+      "main": [
+        [
+          {
+            "node": "Get a row2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Vazio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a row1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cancelado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cancelamento": {
+      "main": [
+        [
+          {
+            "node": "Get a row3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row1": {
+      "main": [
+        [
+          {
+            "node": "Realizado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row3": {
+      "main": [
+        [
+          {
+            "node": "Cancelado1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7a573615-5a38-4584-b637-26331604a6e9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "52b05b755d6159096716768cc21879fdbfe5b14c59d336f52caea02a3ebb0323"
+  },
+  "id": "3ECNcqmYyEFFLgwXBSL6B",
+  "tags": []
+}

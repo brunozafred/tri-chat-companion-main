@@ -1,0 +1,189 @@
+{
+  "name": "F2 - Bloqueio/Desbloqueio",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"message\": \"Usuário bloqueado com sucesso\", \"status\": 200}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        656,
+        -64
+      ],
+      "id": "d82f2c54-fd1f-402a-9392-522cab20ba47",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"message\": \"Usuário desbloqueado com sucesso\", \"status\": 200}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        656,
+        176
+      ],
+      "id": "b5ba495d-f200-4e37-aed9-e2f77f083e3f",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bloqueio",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        -64
+      ],
+      "id": "5c6969ba-88fb-439d-aec8-a59d2f9f7ac0",
+      "name": "Bloqueio",
+      "webhookId": "3a999b50-5ada-4c0c-849c-f25e4c4c0519"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "desbloqueio",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        176
+      ],
+      "id": "6e998f5f-a87b-4047-abb5-af884875fb5c",
+      "name": "Desbloqueio",
+      "webhookId": "3a999b50-5ada-4c0c-849c-f25e4c4c0519"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "usuarios",
+        "filterType": "string",
+        "filterString": "=email=eq.{{ $json.body.email }}",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "bloqueado",
+              "fieldValue": "true"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        432,
+        -64
+      ],
+      "id": "f312d740-4d51-41c4-993f-8186b82f44e6",
+      "name": "Bloqueia Usuário",
+      "credentials": {
+        "supabaseApi": {
+          "id": "a9GuXzTIV0AbjpX7",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "usuarios",
+        "filterType": "string",
+        "filterString": "=email=eq.{{ $json.body.email }}",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "bloqueado",
+              "fieldValue": "false"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        432,
+        176
+      ],
+      "id": "dabaefba-6dc1-4183-897d-6659f6021148",
+      "name": "Desbloqueia Usuário",
+      "credentials": {
+        "supabaseApi": {
+          "id": "a9GuXzTIV0AbjpX7",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Bloqueio": {
+      "main": [
+        [
+          {
+            "node": "Bloqueia Usuário",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Desbloqueio": {
+      "main": [
+        [
+          {
+            "node": "Desbloqueia Usuário",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bloqueia Usuário": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Desbloqueia Usuário": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "64fe6efd-1155-4d47-b823-9bb5e975ad4a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "52b05b755d6159096716768cc21879fdbfe5b14c59d336f52caea02a3ebb0323"
+  },
+  "id": "4XyrKfAeyeiDlUw3aQNs5",
+  "tags": []
+}
