@@ -1,73 +1,95 @@
-# Welcome to your Lovable project
+# 🤖 Chatbot com Agendamento, Bloqueio e Lembretes — N8N + React + Supabase
 
-## Project info
+Este projeto implementa um chatbot utilizando o **N8N como backend de automação**, integrado a um frontend em **React**, com persistência de dados no **Supabase (PostgreSQL)**.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+O bot é capaz de:
 
-## How can I edit this code?
+- Interagir dinamicamente com usuários via LLM  
+- Agendar conversas  
+- Bloquear e desbloquear contatos  
+- Enviar lembretes automáticos após inatividade  
+- Respeitar regras de comunicação e prevenção de spam  
 
-There are several ways of editing your application.
+Projeto desenvolvido como **Desafio Técnico de Backend/Automação**.
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## 🚀 Stack Utilizada
 
-Changes made via Lovable will be committed automatically to this repo.
+### Backend
+- [N8N](https://n8n.io/) — Orquestração de fluxos e automação
+- Railway para hospedagem dos fluxos do n8n
+- Webhooks para comunicação com frontend
+- Integração com LLM (OpenAI)
 
-**Use your preferred IDE**
+### Frontend
+- React (Vite)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Banco de Dados
+- Supabase (PostgreSQL)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🤖 Acesso ao Bot
 
-Follow these steps:
+![Chat Trilingo](public/tela-trilingo.png)]
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+URL -> https://apptrilingo.netlify.app/
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 💻 Como utilizar
 
-# Step 3: Install the necessary dependencies.
-npm i
+Primeiro é necessário se registrar ou fazer login.
+O chat conta com sistema de autenticação do supabase para cumprir com uma regra do desafio de e-mail único.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+### 1️⃣ Sistema de Bloqueio/Desbloqueio
+
+O usuário pode ser bloqueado usando o postman (ou similar) com endpoint:
 ```
+POST
+https://n8n-production-dabf.up.railway.app/webhook/bloqueio
+Body:
+{
+  "email": "email_do_usuario@email.com",
+  "bloqueado": "true"
+}
+```
+Também pode ser desbloqueado através de um botão na tela ou usando o postman:
+```
+POST
+https://n8n-production-dabf.up.railway.app/webhook/desbloqueio
+Body:
+{
+  "email": "email_do_usuario@email.com",
+  "bloqueado": "true"
+}
+```
+### 2️⃣ Sistema de Agendamento
 
-**Edit a file directly in GitHub**
+O chat conta com 4 botões na tela que acionam o fluxo do n8n para agendamentos:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Fluxo -> https://n8n-production-dabf.up.railway.app/webhook/api/v1/agendamento
 
-**Use GitHub Codespaces**
+No fluxo é possível:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Agendar Conversa
+- Consultar uma data agendada
+- Atualizar (trocar) a data escolhida
+- Cancelar Agendamento
 
-## What technologies are used for this project?
 
-This project is built with:
+![Agendar Conversa](public/agendar_conversa.png)
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+O webhook recebe os dados do usuário logado no frontend e também a data escolhida para agendamento.
+Em seguida converte a data para ISO 8601 que é o padrão aceito pelo Supabase.
+No próximo node ele recupera os dados do usuário e filtra a ação que o usuário deseja fazer, direncionando o fluxo pra ela.
 
-## How can I deploy this project?
+### 3️⃣ Sistema de Lembretes
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+![Lembretes](public/lembretes.png)
 
-## Can I connect a custom domain to my Lovable project?
+O sistema também possui um sistema de lembretes.
+Se o usuário ficar inativo por 15 minutos o sistema envia uma mensagem de inatividade.
+Se ele ficar inativo por mais 15 minutos uma segunda mensagem é enviada.
+A partir da segunda mensagem nenhuma outra é enviada.
+A qualquer momento que o usuário faça uma interação com o chat o sistema é resetado.
 
-Yes, you can!
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
