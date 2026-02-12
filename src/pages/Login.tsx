@@ -19,7 +19,7 @@ const Login = () => {
 
   const sendUserToWebhook = async (userData: { id: string; nome: string; email: string; bloqueado: boolean }) => {
     try {
-      await fetch("https://n8n-production-dabf.up.railway.app/webhook/chat-trilingo", {
+      const response = await fetch("https://n8n-production-dabf.up.railway.app/webhook/chat-trilingo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -30,7 +30,11 @@ const Login = () => {
           message: "login",
         }),
       });
+      if (response.ok) {
+        return await response.json();
+      }
     } catch { /* silently fail */ }
+    return null;
   };
 
   const handleLogin = async () => {
@@ -45,12 +49,29 @@ const Login = () => {
 
     if (err) { setError("Erro ao buscar usuário."); setLoading(false); return; }
     if (!data) { setError("Email não encontrado. Faça seu registro primeiro!"); setLoading(false); return; }
-    if (data.bloqueado) { setError("Sua conta está bloqueada."); setLoading(false); return; }
 
     setUser({ id: data.id, nome: data.nome, email: data.email });
-    sendUserToWebhook({ id: data.id, nome: data.nome, email: data.email, bloqueado: data.bloqueado || false });
+
+    // Busca o status atualizado diretamente do Supabase antes de enviar para o webhook
+    const { data: updatedData } = await supabase
+      .from("usuarios")
+      .select("bloqueado")
+      .eq("id", data.id)
+      .single();
+
+    const webhookResponse = await sendUserToWebhook({
+      id: data.id,
+      nome: data.nome,
+      email: data.email,
+      bloqueado: updatedData?.bloqueado || false
+    });
     setLoading(false);
-    navigate("/chat");
+    navigate("/chat", {
+      state: {
+        webhookResponse,
+        isInitiallyBlocked: updatedData?.bloqueado || false
+      }
+    });
   };
 
   const handleRegister = async () => {
@@ -75,9 +96,19 @@ const Login = () => {
     }
 
     setUser({ id: data.id, nome: data.nome, email: data.email });
-    sendUserToWebhook({ id: data.id, nome: data.nome, email: data.email, bloqueado: data.bloqueado || false });
+    const webhookResponse = await sendUserToWebhook({
+      id: data.id,
+      nome: data.nome,
+      email: data.email,
+      bloqueado: data.bloqueado || false
+    });
     setLoading(false);
-    navigate("/chat");
+    navigate("/chat", {
+      state: {
+        webhookResponse,
+        isInitiallyBlocked: data.bloqueado || false
+      }
+    });
   };
 
   if (mode === "home") {
