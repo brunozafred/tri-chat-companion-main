@@ -29,4 +29,4 @@ Projeto desenvolvido como **Desafio Técnico de Backend/Automação**.
 
 ## 🤖 Acesso ao Bot
 
-![Tela do Trilingo](./tela-trilingo.png)
+![Tela do Trilingo](public/tela-trilingo.png)
