@@ -42,6 +42,7 @@ O chat conta com sistema de autenticação do supabase para cumprir com uma regr
 ### 1️⃣ Sistema de Bloqueio/Desbloqueio
 
 O usuário pode ser bloqueado usando o postman (ou similar) com endpoint:
+```
 POST
 https://n8n-production-dabf.up.railway.app/webhook/bloqueio
 Body:
@@ -49,8 +50,9 @@ Body:
   "email": "email_do_usuario@email.com",
   "bloqueado": "true"
 }
-
+```
 Também pode ser desbloqueado através de um botão na tela ou usando o postman:
+```
 POST
 https://n8n-production-dabf.up.railway.app/webhook/desbloqueio
 Body:
@@ -58,7 +60,7 @@ Body:
   "email": "email_do_usuario@email.com",
   "bloqueado": "true"
 }
-
+```
 ### 2️⃣ Sistema de Agendamento
 
 O chat conta com 4 botões na tela que acionam o fluxo do n8n para agendamentos:
